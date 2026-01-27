@@ -13,7 +13,7 @@ from flask import Flask, request, jsonify
 
 # ========== НАСТРОЙКИ ==========
 TOKEN = "8514069884:AAFDLTthrr6udTJ_jqdMiHg-k0x_90dOE6s"
-WEBHOOK_URL = "https://stars-prok.onrender.com"
+WEBHOOK_URL = "https://ref-f5w3.onrender.com"
 WEBHOOK_PATH = f"/webhook/{TOKEN}"
 PORT = 8080
 
