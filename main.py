@@ -33,7 +33,7 @@ bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
 app = Flask(__name__)
 
 # ID администратора
-ADMIN_IDS = [8118184388]
+ADMIN_IDS = [7887893735]
 
 # Глобальные переменные для каналов
 REQUIRED_CHANNELS = []  # Каналы с обязательной подпиской
