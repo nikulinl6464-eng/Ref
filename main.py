@@ -872,7 +872,7 @@ def create_withdrawal(user_id, invoice_link, amount):
     
     if active_withdrawal:
         conn.close()
-        return False, f"⚠️ У вас уже есть активная заявка #{active_withdrawal[0]}. Дождитесь её обработки."
+        return False, f"❌ У вас уже есть активная заявка #{active_withdrawal[0]}. Дождитесь её обработки перед созданием новой."
 
 
     cursor.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
@@ -1828,6 +1828,8 @@ t.me/send?start=IVqhDHooVJKU</code>
         bot.send_message(
             message.chat.id,
             f"""❌ <b>ОШИБКА СОЗДАНИЯ</b>
+
+❌ <b>Ошибка!</b>
 
 {message_text}""",
             parse_mode='HTML',
