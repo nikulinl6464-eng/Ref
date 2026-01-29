@@ -872,7 +872,7 @@ def create_withdrawal(user_id, invoice_link, amount):
     
     if active_withdrawal:
         conn.close()
-        return False, f"❌ У вас уже есть активная заявка #{active_withdrawal[0]}. Дождитесь её обработки перед созданием новой."
+        return False, f" У вас уже есть активная заявка дождитесь её обработки перед созданием новой."
 
 
     cursor.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
@@ -1851,17 +1851,13 @@ t.me/send?start=IVqhDHooVJKU</code>
             reply_markup=create_main_menu()
         )
     else:
+        # Просто показываем текст ошибки без дополнительного оформления
         bot.send_message(
             message.chat.id,
-            f"""❌ <b>ОШИБКА СОЗДАНИЯ</b>
-
-❌ <b>Ошибка!</b>
-
-{message_text}""",
+            f"‼️ {message_text}",
             parse_mode='HTML',
             reply_markup=create_main_menu()
         )
-
 
 def support_command(message):
     """🆘Техническая поддержка"""
@@ -2948,7 +2944,12 @@ def process_approve_withdrawal(message, withdrawal_id):
         withdrawal = cursor.fetchone()
 
         if withdrawal:
-            user_id, amount, username = withdrawal
+            user_id, amount, crypto_address = withdrawal
+            
+            # Получаем настоящий username из таблицы users
+            cursor.execute("SELECT username FROM users WHERE user_id = ?", (user_id,))
+            user_data = cursor.fetchone()
+            real_username = user_data[0] if user_data and user_data[0] else str(user_id)
 
             cursor.execute('''
                 UPDATE withdrawals
@@ -2959,13 +2960,10 @@ def process_approve_withdrawal(message, withdrawal_id):
             try:
                 bot.send_message(
                     user_id,
-                    f"""✅ <b>ЗАЯВКА ОДОБРЕНА</b>
-
-✅ <b>Ваша заявка на вывод одобрена!</b>
+                    f"""✅ <b>Ваша заявка на вывод одобрена!</b>
 
 <b>📋 ДЕТАЛИ:</b>
 Сумма: {format_usdt(amount)}
-Номер: #{withdrawal_id}
 Дата: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 {f'<b>💬 СООБЩЕНИЕ:</b>\n{admin_message}' if admin_message else ''}""",
                     parse_mode='HTML'
@@ -2975,13 +2973,13 @@ def process_approve_withdrawal(message, withdrawal_id):
 
             conn.commit()
 
-            safe_username = sanitize_text(username) if username else "Не указан"
+            safe_username = sanitize_text(real_username) if real_username else "Не указан"
             bot.send_message(
                 message.chat.id,
                 f"""✅ <b>ЗАЯВКА ОДОБРЕНА</b>
 
 ✅ <b>Заявка #{withdrawal_id} одобрена!</b>
-📱 <b>Username пользователя:</b> @{safe_username}
+📱 <b>Username пользователя: @{safe_username}</b>
 💰 <b>Сумма:</b> {format_usdt(amount)}""",
                 parse_mode='HTML'
             )
@@ -3036,7 +3034,12 @@ def process_reject_withdrawal(message, withdrawal_id):
         withdrawal = cursor.fetchone()
 
         if withdrawal:
-            user_id, amount, username = withdrawal
+            user_id, amount, crypto_address = withdrawal
+            
+            # Получаем настоящий username из таблицы users
+            cursor.execute("SELECT username FROM users WHERE user_id = ?", (user_id,))
+            user_data = cursor.fetchone()
+            real_username = user_data[0] if user_data and user_data[0] else str(user_id)
 
             cursor.execute('''
                 UPDATE withdrawals
@@ -3052,16 +3055,11 @@ def process_reject_withdrawal(message, withdrawal_id):
             try:
                 bot.send_message(
                     user_id,
-                    f"""❌ <b>ЗАЯВКА ОТКЛОНЕНА</b>
-
-❌ <b>Ваша заявка на вывод отклонена</b>
+                    f"""❌ <b>Ваша заявка на вывод отклонена</b>
 
 <b>📋 ДЕТАЛИ:</b>
 Сумма: {format_usdt(amount)}
-Номер: #{withdrawal_id}
 Дата: {datetime.now().strftime('%Y-%m-%d %H:%M')}
-
-⚠️ <b>{CURRENCY} НЕ возвращаются на баланс</b>
 
 <b>💬 ПРИЧИНА:</b>
 {reject_reason}""",
@@ -3072,13 +3070,13 @@ def process_reject_withdrawal(message, withdrawal_id):
 
             conn.commit()
 
-            safe_username = sanitize_text(username) if username else "Не указан"
+            safe_username = sanitize_text(real_username) if real_username else "Не указан"
             bot.send_message(
                 message.chat.id,
                 f"""❌ <b>ЗАЯВКА ОТКЛОНЕНА</b>
 
 ❌ <b>Заявка #{withdrawal_id} отклонена!</b>
-📱 <b>Username пользователя:</b> @{safe_username}
+📱 <b>Username пользователя: @{safe_username}</b>
 💰 <b>Сумма:</b> {format_usdt(amount)}
 
 ⚠️ {CURRENCY} не возвращены пользователю.""",
